@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee
+  labels:
+    app: employee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee
+  template:
+    metadata:
+      labels:
+        app: employee
+    spec:
+      serviceAccountName: spring-cloud-kubernetes
+      containers:
+        - name: employee
+          image: piomin/employee
+          ports:
+            - containerPort: 8080
+          env:
+            # Enable Spring Cloud Bootstrap for Kubernetes
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "true"
+            - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLEAPI
+              value: "true"
+
+            # Admin Server Configuration
+            - name: SPRING_BOOT_ADMIN_CLIENT_URL
+              value: "http://admin:8080" 
+            - name: SERVER_PORT
+              value: "8080"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+            # (Optional) Enable Kubernetes Config Import
+            - name: SPRING_CONFIG_IMPORT
+              value: "kubernetes:"
